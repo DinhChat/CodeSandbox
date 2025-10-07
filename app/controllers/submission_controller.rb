@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "open3"
+
 class SubmissionController < ApplicationController
   # POST /submissions/run
   def run
@@ -137,7 +139,7 @@ class SubmissionController < ApplicationController
     end
 
     # Clean up temporary directory
-    FileUtils.remove_entry_point(temp_dir)
+    FileUtils.remove_entry(temp_dir)
 
     {
       output: output,
@@ -161,19 +163,19 @@ class SubmissionController < ApplicationController
 
   def get_code_file_name(language)
     case language
-    when 'python' then 'solution.py'
-    when 'java' then 'Solution.java' # Class name must be Solution
-    when 'cpp' then 'solution.cpp'
-    when 'ruby' then 'solution.rb'
+    when "python" then "solution.py"
+    when "java" then "Solution.java" # Class name must be Solution
+    when "cpp" then "solution.cpp"
+    when "ruby" then "solution.rb"
     # Add other languages
-    else 'solution.txt'
+    else "solution.txt"
     end
   end
 
   def get_executable_file_name(language)
     case language
-    when 'java' then 'Solution' # Class name
-    when 'cpp' then 'a.out'
+    when "java" then "Solution" # Class name
+    when "cpp" then "a.out"
     # For interpreted languages, the code file itself is the executable
     else get_code_file_name(language)
     end
@@ -181,12 +183,12 @@ class SubmissionController < ApplicationController
 
   def get_docker_image(language)
     case language
-    when 'python' then 'python:3.9-slim-buster'
-    when 'java' then 'openjdk:11-jre-slim-buster' # Use JRE for running, JDK for compiling
-    when 'cpp' then 'gcc:9-slim' # Or a more lightweight C++ image like alpine/gcc
-    when 'ruby' then 'ruby:3.0-slim-buster'
+    when "python" then "python:3.9-slim-buster"
+    when "java" then "openjdk:11-jre-slim-buster" # Use JRE for running, JDK for compiling
+    when "cpp" then "gcc:9-slim" # Or a more lightweight C++ image like alpine/gcc
+    when "ruby" then "ruby:3.0-slim-buster"
     # You might want to build custom images with specific versions or tools
-    else 'alpine/base' # Fallback
+    else "alpine/base" # Fallback
     end
   end
 
@@ -201,17 +203,17 @@ class SubmissionController < ApplicationController
     script << "max_memory_usage=0\n"
 
     case language
-    when 'python'
+    when "python"
       script << "python #{code_file_name} < input.txt\n"
-    when 'java'
+    when "java"
       script << "javac #{code_file_name} 2> compile_error.txt\n"
       script << "if [ $? -ne 0 ]; then cat compile_error.txt; exit 1; fi\n"
       script << "java #{executable_file_name} < input.txt\n"
-    when 'cpp'
+    when "cpp"
       script << "g++ #{code_file_name} -o #{executable_file_name} 2> compile_error.txt\n"
       script << "if [ $? -ne 0 ]; then cat compile_error.txt; exit 1; fi\n"
       script << "./#{executable_file_name} < input.txt\n"
-    when 'ruby'
+    when "ruby"
       script << "ruby #{code_file_name} < input.txt\n"
     else
       script << "echo \"Unsupported language: #{language}\"\n"
