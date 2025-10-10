@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "open3"
+require 'httparty'
 
 class SubmissionController < ApplicationController
   # POST /submissions/run
@@ -19,7 +20,8 @@ class SubmissionController < ApplicationController
     results = []
     test_cases.each_with_index do |test_case, index|
       Rails.logger.info "Running test case #{index + 1} for language #{language}"
-      result = run_code_in_docker(submission_code, language, test_case[:input], time_limit, memory_limit)
+      # result = run_code_in_docker(submission_code, language, test_case[:input], time_limit, memory_limit)
+      result = run_code_in_runner_service(submission_code, language, test_case[:input])
 
       # So sánh output và đánh giá kết quả
       passed = (result[:output].strip == test_case[:expected_output].strip)
@@ -159,6 +161,24 @@ class SubmissionController < ApplicationController
       status: "Internal Error",
       error_message: e.message
     }
+  end
+
+  def run_code_in_runner_service(code, language, input_data)
+    runner_url = ENV.fetch("RUNNER_URL", "http://runner:5000/run")
+
+    payload = {
+      code: code,
+      language: language,
+      stdin: input_data
+    }
+
+    response = HTTParty.post(runner_url,
+                             body: payload.to_json,
+                             headers: { "Content-Type" => "application/json" },
+                             timeout: 10
+    )
+
+    JSON.parse(response.body).deep_symbolize_keys
   end
 
   def get_code_file_name(language)
