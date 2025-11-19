@@ -1,22 +1,53 @@
 # README
 
-# How to build Docker environment for this service:
-cd /home/dinhchat/Project/Code_Sandbox
-docker build -t code_sandbox-app:latest .
-docker run -d -p 3000:3000 -e RAILS_MASTER_KEY=0a5f37f35ea51647540ff71f48cdd73f -v /var/run/docker.sock:/var/run/docker.sock --name code_sandbox --group-add 984 code_sandbox-app:latest
-docker images
+# Ruby version: 3.4.5
 
+# How to build ruby on rails environtemt:
+## Ubuntu:
+```bash
+sudo apt update
+sudo apt install build-essential rustc libssl-dev libyaml-dev zlib1g-dev libgmp-dev git
+curl https://mise.run | sh
+echo 'eval "$(~/.local/bin/mise activate)"' >> ~/.bashrc
+source ~/.bashrc
+mise use -g ruby@3.4.5
 
-docker run -d -p 3000:3000 -e RAILS_MASTER_KEY=0a5f37f35ea51647540ff71f48cdd73f --name code_sandbox code_sandbox-app:latest
+gem install rails
+```
 
-# Check container
-docker ps 
-docker ps a
-docker exec -it code_sandbox /bin/bash
+## RHEL:
+```bash
+yum install -y gcc-c++ patch readline readline-devel \
+    zlib zlib-devel libyaml-devel libffi-devel openssl-devel \
+    make bzip2 autoconf automake libtool bison sqlite-devel
 
-# stop/start container
-docker stop code_sandbox
-docker start code_sandbox
+git clone https://github.com/rbenv/rbenv.git ~/.rbenv
+echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bash_profile
+echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
+source ~/.bash_profile
 
+git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+
+rbenv install 3.4.5
+
+gem install rails -v 8.0
+```
+# How to build environment for this service:
+```bash
+install docker
+find docker gid -> add user run service to the docker group: usermod -aG docker $USER
+restart user session
+```
+
+# Run service:
+```bash
+cd /CodeSandbox
+bundle íntall
+rails s
+```
+
+# Case run service in KVM/QEMU: Mount folder
+```bash
 sudo mkdir -p /mnt/shared
 sudo mount -t virtiofs project /mnt/shared
+```
