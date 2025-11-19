@@ -14,38 +14,33 @@ class SubmissionService
   end
 
   def run_all_tests
-    results = []
-    @test_cases.each_with_index do |test_case, index|
-      Rails.logger.info "Running test case #{index + 1} for language #{@language}"
+    runner = select_runner
+    results = runner.run_all_tests_in_docker(@code, @language, @test_cases, @time_limit, @memory_limit)
 
-      runner = select_runner
-      result = runner.run(@code, @language, test_case[:input], @time_limit, @memory_limit)
-
-      passed = result[:output].strip == test_case[:expected_output].strip
-
-      results << result.merge(
-        test_case_number: index + 1,
-        input: test_case[:input],
-        expected_output: test_case[:expected_output],
-        passed: passed
-      )
+    results.each_with_index do |result, index|
+      result[:test_case_number] = index + 1 unless result.key?(:test_case_number)
+      result[:input] = @test_cases[index][:input] if @test_cases[index] && !result.key?(:input)
+      result[:expected_output] = @test_cases[index][:expected_output] if @test_cases[index] && !result.key?(:expected_output)
+      result[:passed] = !!result[:passed]
     end
+
     results
   end
 
   private
 
   def validate_params!
-    if @code.blank? || @language.blank? || @test_cases.blank?
-      raise InvalidParamsError, "Missing required parameters"
+    raise InvalidParamsError, "Submission code is required" if @code.blank?
+    raise InvalidParamsError, "Language is required" if @language.blank?
+    raise InvalidParamsError, "Test cases are required" if @test_cases.blank?
+    raise InvalidParamsError, "Test cases must be an array" unless @test_cases.is_a?(Array)
+    @test_cases.each_with_index do |tc, i|
+      raise InvalidParamsError, "Test case #{i+1} must have input" if tc[:input].blank?
+      raise InvalidParamsError, "Test case #{i+1} must have expected_output" if tc[:expected_output].blank?
     end
   end
 
   def select_runner
-    if ENV["USE_DOCKER_RUNNER"] == "true"
-      CodeRunners::DockerExecutor.new
-    else
-      CodeRunners::RunnerService.new
-    end
+    CodeRunners::DockerExecutor.new
   end
 end
