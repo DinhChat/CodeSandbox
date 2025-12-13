@@ -2,7 +2,7 @@
 
 # Ruby version: 3.4.5
 
-# How to build ruby on rails environtemt:
+# How to build ruby on rails environment:
 ## Ubuntu:
 ```bash
 sudo apt update
@@ -51,3 +51,21 @@ rails s
 sudo mkdir -p /mnt/shared
 sudo mount -t virtiofs project /mnt/shared
 ```
+
+## Dockerfile for cpp: Dockerfile.cpp
+```bash
+# Dockerfile.cpp
+FROM gcc:12-bookworm
+
+RUN apt-get update -y && apt-get install -y jq bc && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+```
+# build docker images:
+```bash
+docker build -f Dockerfile.cpp -t my-cpp-executor:12 .
+```
+
+
+
+
