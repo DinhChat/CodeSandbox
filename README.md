@@ -61,6 +61,17 @@ RUN apt-get update -y && apt-get install -y jq bc && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 ```
+
+### Dockerfile for python: Dockerfile.py
+```bash
+FROM python:3.12-slim-bookworm
+
+RUN apt-get update -y \
+    && apt-get install -y jq bc \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+```
 # build docker images:
 ```bash
 docker build -f Dockerfile.cpp -t my-cpp-executor:12 .
