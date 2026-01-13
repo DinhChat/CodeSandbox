@@ -70,11 +70,11 @@ module CodeRunners
 
     def get_docker_image(lang)
       {
-        "python" => "python:3.9-slim-buster",
+        "python" => "my-python-executor",
         "java"   => "openjdk:11-jre-slim-buster",
         "cpp"    => "my-cpp-executor:12",
         "ruby"   => "ruby:3.0-slim-buster"
-      }[lang] || "python:3.9-slim-buster"
+      }[lang] || "my-cpp-executor:12"
     end
 
     def generate_run_script(lang, code_file, exec_file, time_limit)
